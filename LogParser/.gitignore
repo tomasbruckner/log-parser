@@ -1,0 +1,8 @@
+/*.suo
+.vs/
+bin/
+obj/
+*.DotSettings.user
+
+.idea
+.DS_Store
