@@ -7,6 +7,15 @@ namespace LogParser.Sensors
 {
     public static class SensorFactory
     {
+        /// <summary>
+        ///     Factory for sensor types
+        /// </summary>
+        /// <param name="referenceMap">Map of reference values for each sensor</param>
+        /// <param name="type">Current sensor type</param>
+        /// <param name="name">Name of sensor</param>
+        /// <returns>Instance of correct sensor</returns>
+        /// <exception cref="MissingReferenceValueException"></exception>
+        /// <exception cref="InvalidSensorTypeException"></exception>
         public static ISensor Create(IDictionary<string, string> referenceMap, string type, string name)
         {
             if (!referenceMap.ContainsKey(type))
@@ -15,7 +24,7 @@ namespace LogParser.Sensors
             }
 
             var referenceValue = referenceMap[type];
-            
+
             switch (type)
             {
                 case SensorTypes.HumiditySensor:

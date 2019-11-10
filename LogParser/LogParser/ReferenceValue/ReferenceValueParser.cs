@@ -11,12 +11,12 @@ namespace LogParser.ReferenceValue
         private const string Delimiter = " ";
 
         /// <summary>
-        ///     Parses reference values for sensors
+        ///     Parses reference values for sensors.
         /// </summary>
-        /// <param name="line"></param>
-        /// <returns></returns>
+        /// <param name="line">Reference line parsed from log.</param>
+        /// <returns>Map of sensor types and their reference values</returns>
         /// <exception cref="InvalidReferenceFormatException"></exception>
-        public static Dictionary<string, string> GetReferenceValues(string line)
+        public static IDictionary<string, string> GetReferenceValues(string line)
         {
             var parts = TryParseFormat(line);
             var references = new Dictionary<string, string>();
@@ -37,18 +37,20 @@ namespace LogParser.ReferenceValue
         }
 
         /// <summary>
+        ///     Validates correct reference format. Correct format should be:
+        ///     reference [sensor_type reference_value]+
         /// </summary>
-        /// <param name="line"></param>
+        /// <param name="referenceLine">Reference information</param>
         /// <returns></returns>
         /// <exception cref="InvalidReferenceFormatException"></exception>
-        private static string[] TryParseFormat(string line)
+        private static string[] TryParseFormat(string referenceLine)
         {
-            if (line == null)
+            if (referenceLine == null)
             {
                 throw new InvalidReferenceFormatException(InvalidReferenceFormatException.MissingReference);
             }
 
-            var parts = line.Split(Delimiter, StringSplitOptions.RemoveEmptyEntries);
+            var parts = referenceLine.Split(Delimiter, StringSplitOptions.RemoveEmptyEntries);
 
             if (parts.Length < 3 || parts.Length % 2 == 0)
             {

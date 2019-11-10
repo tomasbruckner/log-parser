@@ -15,6 +15,21 @@ namespace LogParser
     {
         private const string Delimiter = " ";
 
+        /// <summary>
+        ///     Parses sensor type logs and returns information about their quality.
+        ///     Correct format:
+        ///     reference [sensor_type reference_value]+
+        ///     [sensor_type sensor_name
+        ///     [date value]+]+
+        /// </summary>
+        /// <param name="content">Log to parse</param>
+        /// <returns>Information about quality of the sensor types in JSON format.</returns>
+        /// <exception cref="InvalidReferenceFormatException"></exception>
+        /// <exception cref="InvalidSensorTypeException"></exception>
+        /// <exception cref="InvalidSensorValueException"></exception>
+        /// <exception cref="MissingReferenceValueException"></exception>
+        /// <exception cref="MissingSensorDefinitionException"></exception>
+        /// <exception cref="NoReadingValuesException"></exception>
         public static string Parse(string content)
         {
             using (var reader = new StringReader(content))
@@ -25,6 +40,17 @@ namespace LogParser
             }
         }
 
+        /// <summary>
+        ///     Parsed log and returns information about sensors defined inside log.
+        /// </summary>
+        /// <param name="readNextLine">Generic function for parsing any stream.</param>
+        /// <returns>Parsed log</returns>
+        /// <exception cref="InvalidReferenceFormatException"></exception>
+        /// <exception cref="InvalidSensorTypeException"></exception>
+        /// <exception cref="InvalidSensorValueException"></exception>
+        /// <exception cref="MissingReferenceValueException"></exception>
+        /// <exception cref="MissingSensorDefinitionException"></exception>
+        /// <exception cref="NoReadingValuesException"></exception>
         private static Dictionary<string, string> Parse(Func<string> readNextLine)
         {
             var referenceMap = ReferenceValueParser.GetReferenceValues(readNextLine());
@@ -67,6 +93,11 @@ namespace LogParser
             return result;
         }
 
+        /// <summary>
+        ///     Adds information about sensor quality.
+        /// </summary>
+        /// <param name="sensor">Sensor instance</param>
+        /// <param name="result">Map of results</param>
         private static void AddToResult(ISensor sensor, IDictionary<string, string> result)
         {
             if (sensor != null)
@@ -78,6 +109,12 @@ namespace LogParser
             }
         }
 
+        /// <summary>
+        ///     Decides next state of parsing automata.
+        /// </summary>
+        /// <param name="line">One line of input from log.</param>
+        /// <returns>Next state of current automata.</returns>
+        /// <exception cref="InvalidSensorValueException"></exception>
         private static (ParseStateEnum, string, string) TryNextState(string line)
         {
             var parts = line.Split(Delimiter, StringSplitOptions.RemoveEmptyEntries);
