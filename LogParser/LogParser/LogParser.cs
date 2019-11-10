@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using LogParser.Enums;
 using LogParser.Exceptions;
@@ -18,19 +19,26 @@ namespace LogParser
         {
             using (var reader = new StringReader(content))
             {
-                return JsonConvert.SerializeObject(Parse(reader));
+                var parsedLog = Parse(() => reader.ReadLine());
+
+                return JsonConvert.SerializeObject(parsedLog);
             }
         }
 
-        private static Dictionary<string, string> Parse(TextReader reader)
+        private static Dictionary<string, string> Parse(Func<string> readNextLine)
         {
-            var referenceMap = ReferenceValueParser.GetReferenceValues(reader.ReadLine());
+            var referenceMap = ReferenceValueParser.GetReferenceValues(readNextLine());
             var result = new Dictionary<string, string>();
             ISensor activeSensor = null;
 
             string line;
-            while ((line = reader.ReadLine()) != null)
+            while ((line = readNextLine()) != null)
             {
+                if (line.Trim() == "")
+                {
+                    continue;
+                }
+
                 var (state, part1, part2) = TryNextState(line);
 
                 switch (state)
@@ -72,7 +80,7 @@ namespace LogParser
 
         private static (ParseStateEnum, string, string) TryNextState(string line)
         {
-            var parts = line.Split(Delimiter);
+            var parts = line.Split(Delimiter, StringSplitOptions.RemoveEmptyEntries);
 
             if (parts.Length != 2)
             {
@@ -81,7 +89,7 @@ namespace LogParser
 
             var state = parts[0].IsDateFormat() ? ParseStateEnum.Value : ParseStateEnum.Sensor;
 
-            return (state, parts[0], parts[1]);
+            return (state, parts[0].Trim(), parts[1].Trim());
         }
     }
 }

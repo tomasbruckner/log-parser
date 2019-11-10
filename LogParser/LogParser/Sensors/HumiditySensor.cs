@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using LogParser.Constants;
 using LogParser.Exceptions;
 using LogParser.Extensions;
-using LogParser.Interfaces;
 using LogParser.Utils;
 
 namespace LogParser.Sensors
@@ -18,8 +13,8 @@ namespace LogParser.Sensors
         private const decimal DefaultDeviation = 1;
 
         private readonly decimal _deviation;
-        private string _state;
         private readonly decimal _reference;
+        private string _state;
 
 
         public HumiditySensor(string name, string referenceValue, decimal deviation = DefaultDeviation) : base(name)
@@ -55,7 +50,7 @@ namespace LogParser.Sensors
         {
             if (_state == null)
             {
-                throw new NoReadingValues(GetType());
+                throw new NoReadingValuesException(GetType());
             }
 
             return _state;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using LogParser.Constants;
+using LogParser.Exceptions;
 using LogParser.Extensions;
 using LogParser.Utils;
 
@@ -17,9 +18,11 @@ namespace LogParser.Sensors
         private const double DefaultVeryPreciseDeviation = 5;
 
         private readonly double _allowedDeviation;
-        private readonly double _veryPreciseDeviation;
-        private readonly double _ultraPreciseDeviation;
+
+        private readonly ICollection<double> _readingValues = new List<double>();
         private readonly double _reference;
+        private readonly double _ultraPreciseDeviation;
+        private readonly double _veryPreciseDeviation;
 
         public ThermometerSensor(
             string name,
@@ -35,8 +38,6 @@ namespace LogParser.Sensors
             _ultraPreciseDeviation = ultraPreciseDeviation;
         }
 
-        private readonly ICollection<double> _readingValues = new List<double>();
-
         public override string GetType()
         {
             return SensorTypes.ThermometerSensor;
@@ -50,6 +51,11 @@ namespace LogParser.Sensors
 
         public override string CalculateQuality()
         {
+            if (!_readingValues.Any())
+            {
+                throw new NoReadingValuesException(GetType());
+            }
+
             var average = _readingValues.Average();
             var isMean = Calculations.InRange(average, _reference, _allowedDeviation);
             var deviation = Calculations.CalculateStdDev(_readingValues);

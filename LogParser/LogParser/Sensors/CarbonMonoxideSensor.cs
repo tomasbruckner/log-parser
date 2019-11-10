@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using LogParser.Constants;
 using LogParser.Exceptions;
 using LogParser.Extensions;
-using LogParser.Interfaces;
 using LogParser.Utils;
 
 namespace LogParser.Sensors
@@ -18,8 +14,8 @@ namespace LogParser.Sensors
         private const long DefaultDeviation = 3;
 
         private readonly long _deviation;
-        private string _state;
         private readonly double _reference;
+        private string _state;
 
         public CarbonMonoxideSensor(string name, string referenceValue, long deviation = DefaultDeviation) : base(name)
         {
@@ -62,7 +58,7 @@ namespace LogParser.Sensors
         {
             if (_state == null)
             {
-                throw new NoReadingValues(GetType());
+                throw new NoReadingValuesException(GetType());
             }
 
             return _state;

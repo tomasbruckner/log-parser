@@ -2,9 +2,9 @@ using System;
 
 namespace LogParser.Exceptions
 {
-    public class NoReadingValues : Exception
+    public class NoReadingValuesException : Exception
     {
-        public NoReadingValues(string type) : base($"No reading values for type {type}")
+        public NoReadingValuesException(string type) : base($"No reading values for type {type}")
         {
         }
     }

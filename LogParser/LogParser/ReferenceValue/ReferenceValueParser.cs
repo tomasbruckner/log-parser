@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LogParser.Exceptions;
@@ -7,9 +8,10 @@ namespace LogParser.ReferenceValue
     public static class ReferenceValueParser
     {
         private const string Reference = "reference";
+        private const string Delimiter = " ";
 
         /// <summary>
-        /// Parses reference values for sensors
+        ///     Parses reference values for sensors
         /// </summary>
         /// <param name="line"></param>
         /// <returns></returns>
@@ -35,7 +37,6 @@ namespace LogParser.ReferenceValue
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="line"></param>
         /// <returns></returns>
@@ -47,19 +48,22 @@ namespace LogParser.ReferenceValue
                 throw new InvalidReferenceFormatException(InvalidReferenceFormatException.MissingReference);
             }
 
-            var parts = line.Split(" ");
+            var parts = line.Split(Delimiter, StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 3 || parts.Length % 2 == 0)
+            {
+                throw new InvalidReferenceFormatException(InvalidReferenceFormatException.InvalidNumberOfParameters);
+            }
 
             if (parts[0] != Reference)
             {
                 throw new InvalidReferenceFormatException(InvalidReferenceFormatException.MissingReferenceKeyword);
             }
 
-            if (parts.Length % 2 == 0)
-            {
-                throw new InvalidReferenceFormatException(InvalidReferenceFormatException.InvalidNumberOfParameters);
-            }
-
-            return parts.Skip(1).ToArray();
+            return parts
+                .Skip(1)
+                .Select(o => o.Trim())
+                .ToArray();
         }
     }
 }
