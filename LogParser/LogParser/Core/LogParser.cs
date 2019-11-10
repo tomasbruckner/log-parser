@@ -1,137 +1,87 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.Json.Serialization;
+using LogParser.Enums;
+using LogParser.Exceptions;
+using LogParser.Extensions;
+using LogParser.Interfaces;
+using LogParser.ReferenceValue;
+using LogParser.Sensors;
 using Newtonsoft.Json;
 
 namespace LogParser
 {
     public static class LogParser
     {
-        private static readonly string[] X =
-        {
-            "thermometer", "humidity", "monoxide"
-        };
-
+        private const string Delimiter = " ";
 
         public static string Parse(string content)
         {
-            using var sr = new StringReader(content);
-            var info = GetReferenceValues(sr.ReadLine());
+            using (var reader = new StringReader(content))
+            {
+                return JsonConvert.SerializeObject(Parse(reader));
+            }
+        }
+
+        private static Dictionary<string, string> Parse(TextReader reader)
+        {
+            var referenceMap = ReferenceValueParser.GetReferenceValues(reader.ReadLine());
             var result = new Dictionary<string, string>();
+            ISensor activeSensor = null;
 
-            (string, string) active = (null, null);
-            var value = new List<double>();
-            var line = "";
-            while ((line = sr.ReadLine()) != null)
+            string line;
+            while ((line = reader.ReadLine()) != null)
             {
-                var parts = line.Split(' ');
+                var (state, part1, part2) = TryNextState(line);
 
-                if (X.Contains(parts[0]))
+                switch (state)
                 {
-                    if (active.Item1 != null)
-                    {
-                        var deviation = CalculateStdDev(value);
-                        if (active.Item1 == "thermometer")
-                        {
-                            result.Add(active.Item2, GetThermoValue(value.Average(), deviation, info["thermometer"]));
-                        }
-                        else if (active.Item1 == "humidity")
-                        {
-                            var reference = info["humidity"];
-                            var text = value.All(o => o >= (reference - 1) && o <= (reference + 1))
-                                ? "keep"
-                                : "discard";
-                            result.Add(active.Item2, text);
-                        }
-                        else
-                        {
-                            var reference = info["monoxide"];
-                            var text = value.All(o => o >= (reference - 3) && o <= (reference + 3))
-                                ? "keep"
-                                : "discard";
-                            result.Add(active.Item2, text);
-                        }
-                    }
+                    case ParseStateEnum.Sensor:
+                        AddToResult(activeSensor, result);
+                        activeSensor = SensorFactory.Create(referenceMap, part1, part2);
+                        break;
 
-                    active = (parts[0], parts[1]);
-                    value.Clear();
-                }
-                else
-                {
-                    value.Add(double.Parse(parts[1], CultureInfo.InvariantCulture));
+                    case ParseStateEnum.Value:
+                        if (activeSensor == null)
+                        {
+                            throw new MissingSensorDefinitionException();
+                        }
+
+                        activeSensor.HandleValue(part2);
+                        break;
+
+                    default:
+                        throw new InvalidSensorValueException(line);
                 }
             }
 
-            if (active.Item1 == "thermometer")
-            {
-                result.Add(active.Item2, GetThermoValue(value.Average(), CalculateStdDev(value), info["thermometer"]));
-            }
-            else if (active.Item1 == "humidity")
-            {
-                var reference = info["humidity"];
-                var text = value.All(o => o >= (reference - 1) && o <= (reference + 1))
-                    ? "keep"
-                    : "discard";
-                result.Add(active.Item2, text);
-            }
-            else
-            {
-                var reference = info["monoxide"];
-                var text = value.All(o => o >= (reference - 3) && o <= (reference + 3))
-                    ? "keep"
-                    : "discard";
-                result.Add(active.Item2, text);
-            }
+            AddToResult(activeSensor, result);
 
-            return JsonConvert.SerializeObject(result);
+            return result;
         }
 
-        private static Dictionary<string, double> GetReferenceValues(string line)
+        private static void AddToResult(ISensor sensor, IDictionary<string, string> result)
         {
-            var x = line.Split(' ');
-
-            return new Dictionary<string, double>
+            if (sensor != null)
             {
-                {"thermometer", double.Parse(x[1], CultureInfo.InvariantCulture)},
-                {"humidity", double.Parse(x[2], CultureInfo.InvariantCulture)},
-                {"monoxide", double.Parse(x[3], CultureInfo.InvariantCulture)},
-            };
+                result.Add(
+                    sensor.GetName(),
+                    sensor.CalculateQuality()
+                );
+            }
         }
 
-        private static string GetThermoValue(double average, double deviation, double reference)
+        private static (ParseStateEnum, string, string) TryNextState(string line)
         {
-            var isMean = average <= (reference + 0.5) && average >= (reference - 0.5);
+            var parts = line.Split(Delimiter);
 
-            if (deviation < 3 && isMean)
+            if (parts.Length != 2)
             {
-                return "ultra precise";
+                throw new InvalidSensorValueException(line);
             }
 
-            if (deviation < 5 && isMean)
-            {
-                return "very precise";
-            }
+            var state = parts[0].IsDateFormat() ? ParseStateEnum.Value : ParseStateEnum.Sensor;
 
-            return "precise";
-        }
-
-        private static double CalculateStdDev(IEnumerable<double> values)
-        {
-            var ret = 0.0;
-            var enumerable = values.ToList();
-            if (!enumerable.Any())
-            {
-                return ret;
-            }
-
-            var avg = enumerable.Average();
-            var sum = enumerable.Sum(d => Math.Pow(d - avg, 2));
-            ret = Math.Sqrt((sum) / (enumerable.Count() - 1));
-
-            return ret;
+            return (state, parts[0], parts[1]);
         }
     }
 }

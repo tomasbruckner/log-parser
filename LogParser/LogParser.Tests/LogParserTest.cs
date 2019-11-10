@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Xunit;
@@ -8,7 +7,7 @@ namespace LogParser.Tests
     public class LogParserTest
     {
         [Fact]
-        public void Test1()
+        public void StandardData()
         {
             var expected = new Dictionary<string, string>
             {
@@ -21,7 +20,7 @@ namespace LogParser.Tests
             };
             Assert.Equal(JsonConvert.SerializeObject(expected),
                 LogParser.Parse(
-                    @"reference 70.0 45.0 6
+                    @"reference thermometer 70.0 humidity 45.0 monoxide 6
 thermometer temp-1
 2007-04-05T22:00 72.4
 2007-04-05T22:01 76.0
