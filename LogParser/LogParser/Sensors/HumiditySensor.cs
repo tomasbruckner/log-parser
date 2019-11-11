@@ -43,7 +43,7 @@ namespace LogParser.Sensors
 
         private bool IsWithinReference(decimal value)
         {
-            return Calculations.InRange(value, _reference, _deviation);
+            return MathUtils.InRange(value, _reference, _deviation);
         }
 
         public override string CalculateQuality()

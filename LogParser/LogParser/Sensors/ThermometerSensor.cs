@@ -57,8 +57,8 @@ namespace LogParser.Sensors
             }
 
             var average = _readingValues.Average();
-            var isMean = Calculations.InRange(average, _reference, _allowedDeviation);
-            var deviation = Calculations.CalculateStdDev(_readingValues);
+            var isMean = MathUtils.InRange(average, _reference, _allowedDeviation);
+            var deviation = MathUtils.CalculateStdDev(_readingValues);
 
             if (!isMean || deviation >= _veryPreciseDeviation)
             {
