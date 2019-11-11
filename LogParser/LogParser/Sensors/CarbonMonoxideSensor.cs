@@ -1,4 +1,3 @@
-using System;
 using LogParser.Constants;
 using LogParser.Exceptions;
 using LogParser.Extensions;
@@ -19,8 +18,8 @@ namespace LogParser.Sensors
 
         public CarbonMonoxideSensor(string name, string referenceValue, long deviation = DefaultDeviation) : base(name)
         {
-            _reference = referenceValue.TryParseDoubleSensorValue(GetFullName());
             _deviation = deviation;
+            _reference = referenceValue.TryParseDoubleSensorValue(GetFullName());
         }
 
         public override string GetType()
@@ -28,24 +27,17 @@ namespace LogParser.Sensors
             return SensorTypes.CarbonMonoxideSensor;
         }
 
-        public override void HandleValue(string value)
+        public override void HandleValue(string referenceValue)
         {
-            try
-            {
-                var number = long.Parse(value);
+            var number = referenceValue.TryParseLongSensorValue(GetType());
 
-                if (!IsWithinReference(number))
-                {
-                    _state = Discard;
-                }
-                else if (_state == null)
-                {
-                    _state = Keep;
-                }
-            }
-            catch (Exception)
+            if (!IsWithinReference(number))
             {
-                throw new InvalidSensorValueException(GetType(), value);
+                _state = Discard;
+            }
+            else if (_state == null)
+            {
+                _state = Keep;
             }
         }
 

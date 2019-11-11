@@ -41,6 +41,18 @@ namespace LogParser.Extensions
         }
 
         /// <summary>
+        ///     Parsed double sensor value
+        /// </summary>
+        /// <param name="input">Double as string</param>
+        /// <param name="sensor">Sensor type</param>
+        /// <returns>Parsed double</returns>
+        /// <exception cref="InvalidSensorValueException"></exception>
+        public static long TryParseLongSensorValue(this string input, string sensor)
+        {
+            return TryParse(input, sensor, () => long.Parse(input, CultureInfo.InvariantCulture));
+        }
+
+        /// <summary>
         ///     Generic function for parsing string
         /// </summary>
         /// <param name="input">To be parsed string valued</param>

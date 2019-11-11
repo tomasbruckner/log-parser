@@ -1,3 +1,4 @@
+using LogParser.Exceptions;
 using LogParser.Interfaces;
 
 namespace LogParser.Sensors
@@ -14,19 +15,20 @@ namespace LogParser.Sensors
         /// <summary>
         ///     Calculates final quality of the specified sensor instance.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Quality of sensor</returns>
+        /// <exception cref="NoReadingValuesException"></exception>
         public abstract string CalculateQuality();
 
         /// <summary>
         ///     Returns name of the sensor type.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Sensor type</returns>
         public new abstract string GetType();
 
         /// <summary>
         ///     Returns name of the sensor.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Name of sensor</returns>
         public string GetName()
         {
             return _name;
@@ -35,13 +37,14 @@ namespace LogParser.Sensors
         /// <summary>
         ///     Handle one value from log.
         /// </summary>
-        /// <param name="value">Value parsed from log</param>
-        public abstract void HandleValue(string value);
+        /// <param name="referenceValue">Value parsed from log</param>
+        /// <exception cref="InvalidSensorValueException"></exception>
+        public abstract void HandleValue(string referenceValue);
 
         /// <summary>
         ///     Returns type and name of the sensor.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Sensor name and type</returns>
         protected string GetFullName()
         {
             return $"{GetType()} - {GetName()}";

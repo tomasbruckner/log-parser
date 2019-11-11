@@ -1,4 +1,3 @@
-
 namespace LogParser.Interfaces
 {
     public interface ISensor
@@ -6,6 +5,6 @@ namespace LogParser.Interfaces
         string CalculateQuality();
         string GetType();
         string GetName();
-        void HandleValue(string value);
+        void HandleValue(string referenceValue);
     }
 }

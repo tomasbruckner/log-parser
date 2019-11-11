@@ -28,9 +28,9 @@ namespace LogParser.Sensors
             return SensorTypes.HumiditySensor;
         }
 
-        public override void HandleValue(string value)
+        public override void HandleValue(string referenceValue)
         {
-            var number = value.TryParseDecimalSensorValue(GetFullName());
+            var number = referenceValue.TryParseDecimalSensorValue(GetFullName());
             if (!IsWithinReference(number))
             {
                 _state = Discard;

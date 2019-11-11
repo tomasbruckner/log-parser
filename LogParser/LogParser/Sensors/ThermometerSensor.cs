@@ -43,9 +43,9 @@ namespace LogParser.Sensors
             return SensorTypes.ThermometerSensor;
         }
 
-        public override void HandleValue(string value)
+        public override void HandleValue(string referenceValue)
         {
-            var number = value.TryParseDoubleSensorValue(GetFullName());
+            var number = referenceValue.TryParseDoubleSensorValue(GetFullName());
             _readingValues.Add(number);
         }
 
