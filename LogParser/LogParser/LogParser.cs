@@ -34,9 +34,53 @@ namespace LogParser
         {
             using (var reader = new StringReader(content))
             {
-                var parsedLog = Parse(() => reader.ReadLine());
+                return Parse(() => reader.ReadLine());
+            }
+        }
 
-                return JsonConvert.SerializeObject(parsedLog);
+        /// <summary>
+        ///     Parses sensor type logs and returns information about their quality.
+        ///     Correct format:
+        ///     reference [sensor_type reference_value]+
+        ///     [sensor_type sensor_name
+        ///     [date value]+]+
+        /// </summary>
+        /// <param name="filePath">Path to file</param>
+        /// <returns>Information about quality of the sensor types in JSON format.</returns>
+        /// <exception cref="InvalidReferenceFormatException"></exception>
+        /// <exception cref="InvalidSensorTypeException"></exception>
+        /// <exception cref="InvalidSensorValueException"></exception>
+        /// <exception cref="MissingReferenceValueException"></exception>
+        /// <exception cref="MissingSensorDefinitionException"></exception>
+        /// <exception cref="NoReadingValuesException"></exception>
+        public static string ParseFile(string filePath)
+        {
+            using (var reader = new StreamReader(filePath))
+            {
+                return Parse(() => reader.ReadLine());
+            }
+        }
+
+        /// <summary>
+        ///     Parses sensor type logs and returns information about their quality.
+        ///     Correct format:
+        ///     reference [sensor_type reference_value]+
+        ///     [sensor_type sensor_name
+        ///     [date value]+]+
+        /// </summary>
+        /// <param name="fileStream">Log to parse</param>
+        /// <returns>Information about quality of the sensor types in JSON format.</returns>
+        /// <exception cref="InvalidReferenceFormatException"></exception>
+        /// <exception cref="InvalidSensorTypeException"></exception>
+        /// <exception cref="InvalidSensorValueException"></exception>
+        /// <exception cref="MissingReferenceValueException"></exception>
+        /// <exception cref="MissingSensorDefinitionException"></exception>
+        /// <exception cref="NoReadingValuesException"></exception>
+        public static string Parse(FileStream fileStream)
+        {
+            using (var reader = new StreamReader(fileStream))
+            {
+                return Parse(() => reader.ReadLine());
             }
         }
 
@@ -51,7 +95,7 @@ namespace LogParser
         /// <exception cref="MissingReferenceValueException"></exception>
         /// <exception cref="MissingSensorDefinitionException"></exception>
         /// <exception cref="NoReadingValuesException"></exception>
-        private static Dictionary<string, string> Parse(Func<string> readNextLine)
+        private static string Parse(Func<string> readNextLine)
         {
             var referenceMap = ReferenceValueParser.GetReferenceValues(readNextLine());
             var result = new Dictionary<string, string>();
@@ -90,7 +134,7 @@ namespace LogParser
 
             AddToResult(activeSensor, result);
 
-            return result;
+            return JsonConvert.SerializeObject(result);
         }
 
         /// <summary>
